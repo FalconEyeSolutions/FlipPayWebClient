@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlipPayWebClient", "FlipPayWebClient.csproj", "{7B470AB8-D3DD-444D-AB34-07769B7A72CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlipPayApiLibrary", "FlipPayApiLibrary.csproj", "{F9203920-05B8-4E63-8889-70A9ABB10799}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7B470AB8-D3DD-444D-AB34-07769B7A72CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B470AB8-D3DD-444D-AB34-07769B7A72CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B470AB8-D3DD-444D-AB34-07769B7A72CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B470AB8-D3DD-444D-AB34-07769B7A72CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9203920-05B8-4E63-8889-70A9ABB10799}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9203920-05B8-4E63-8889-70A9ABB10799}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9203920-05B8-4E63-8889-70A9ABB10799}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9203920-05B8-4E63-8889-70A9ABB10799}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E9537083-FCE5-4C0E-8520-4EBB2CF6FE60}
+		SolutionGuid = {CF1CFB7D-1DA0-45B0-B62E-D37AE6082681}
 	EndGlobalSection
 EndGlobal
