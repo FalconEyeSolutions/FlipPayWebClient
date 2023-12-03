@@ -10,7 +10,7 @@
     <Copyright>Copyright © Abdul-Kadir Coskun 2023</Copyright>
     <PackageId>FlipPayWebClient</PackageId>
     <Title>FlipPayWebClient</Title>
-    <PackageIcon>logo.png</PackageIcon>
+    <PackageIcon>Icons/logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/FalconEyeSolutions/FlipPayWebClient</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
