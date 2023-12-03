@@ -1,5 +1,7 @@
 # FlipPayWebClient - A .NET Library for FlipPay API Integration
 
+[![NuGet version (FlipPayWebClient)](https://img.shields.io/nuget/v/FlipPayWebClient.svg?style=flat-square)](https://www.nuget.org/packages/FlipPayWebClient/)
+
 ## Description
 
 The FlipPayWebClient is a comprehensive .NET library designed for seamless integration with the FlipPay API. This package allows .NET developers to easily interact with the FlipPay platform, streamlining the implementation of various financial services offered by FlipPay. The library encapsulates a wide range of functionalities including merchant onboarding, account linking, and handling different payment options like 'Pay Later' and 'Pay Now'.
