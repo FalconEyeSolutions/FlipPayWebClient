@@ -271,9 +271,9 @@ public class FlipPayWebClient
     {
         try
         {
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonSerializer.Deserialize<T>(content);
         }
         catch (HttpRequestException e)
@@ -297,9 +297,9 @@ public class FlipPayWebClient
         try
         {
             var jsonPayload = JsonSerializer.Serialize(payload);
-            var response = await _httpClient.PostAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType));
+            var response = await _httpClient.PostAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType)).ConfigureAwait(false);           
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonSerializer.Deserialize<T>(content);
         }
         catch (HttpRequestException e)
@@ -323,7 +323,7 @@ public class FlipPayWebClient
         try
         {
             var jsonPayload = JsonSerializer.Serialize(payload);
-            var response = await _httpClient.PatchAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType));
+            var response = await _httpClient.PatchAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType)).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             _logger.LogInformation($"{methodName} successfully executed.");
         }
@@ -345,7 +345,7 @@ public class FlipPayWebClient
     {
         try
         {
-            var response = await _httpClient.DeleteAsync(url);
+            var response = await _httpClient.DeleteAsync(url).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             _logger.LogInformation($"{methodName} successfully executed.");
         }
