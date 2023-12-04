@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text;
-using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using FlipPayApiLibrary.Models.Onboard;
 using FlipPayApiLibrary.Models.General;
@@ -9,24 +8,36 @@ using FlipPayApiLibrary.Models.PayLater;
 using FlipPayApiLibrary.Models.PayNow;
 using FlipPayApiLibrary.Models.Direct;
 using FlipPayApiLibrary.Models.Common;
+using System.Net.Http.Headers;
 
 namespace FlipPayApiLibrary;
 
 // API Documentation: https://api-docs.flippay.com.au/v2.html
-public class FlipPayWebClient
+public class FlipPayWebClient : IFlipPayWebClient
 {
-    private const string productionUrl = "https://app.flippay.com.au/api/v2";
-    private const string demoUrl = "https://demo.flippay.com.au/api/v2";
-    private readonly HttpClient _httpClient = new();
-    private readonly string _baseUrl;
-    private readonly ILogger _logger;
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<FlipPayWebClient> _logger;
 
-    public FlipPayWebClient(string token, bool isDemo, ILogger logger)
+    #region Constructors
+
+    public FlipPayWebClient(HttpClient httpClient, ILogger<FlipPayWebClient> logger)
     {
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        _baseUrl = isDemo ? demoUrl : productionUrl;
+        _httpClient = httpClient;
         _logger = logger;
     }
+
+    public FlipPayWebClient(FlipPayConfig config, ILogger<FlipPayWebClient> logger)
+    {
+        _httpClient = new();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            config.Token
+        );
+        _httpClient.BaseAddress = new Uri(config.IsDemo ? config.DemoUrl : config.ProductionUrl);
+        _logger = logger;
+    }
+
+    #endregion
 
     #region Introducers
 
@@ -37,56 +48,27 @@ public class FlipPayWebClient
     /// </summary>
     /// <param name="onboardPostRequest"></param>
     /// <returns>OnboardPostResponse</returns>
-    public async Task<OnboardPostResponse?> CreateAnOnboardingRequest(OnboardPostRequest onboardPostRequest)
+    public async Task<OnboardPostResponse?> CreateAnOnboardingRequest(
+        OnboardPostRequest onboardPostRequest
+    )
     {
-        var url = $"{_baseUrl}/onboard";
-
-        var jsonPayload = JsonSerializer.Serialize(onboardPostRequest);
-
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<OnboardPostResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error requesting onboarding: {e.Message}");
-            return null;
-        }
+        return await PostAsync<OnboardPostResponse>(
+            $"onboard",
+            onboardPostRequest,
+            nameof(CreateAnOnboardingRequest)
+        );
     }
 
     /// <summary>
     /// Retrieve the status of an onboarding request.
     /// </summary>
     /// <param name="onboardingId"></param>
-    public async Task<OnboardGetResponse?> RetrieveAnOnboardingRequest(
-        string onboardingId
-    )
+    public async Task<OnboardGetResponse?> RetrieveAnOnboardingRequest(string onboardingId)
     {
-        var url = $"{_baseUrl}/onboard/{onboardingId}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<OnboardGetResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching onboarding status: {e.Message}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Unexpected error: {ex.Message}");
-            return null;
-        }
+        return await GetAsync<OnboardGetResponse>(
+            $"onboard/{onboardingId}",
+            nameof(RetrieveAnOnboardingRequest)
+        );
     }
 
     /// <summary>
@@ -95,22 +77,7 @@ public class FlipPayWebClient
     /// <param name="onboardingId"></param>
     public async Task CancelAnOnboardingRequest(string onboardingId)
     {
-        var url = $"{_baseUrl}/onboard/{onboardingId}";
-
-        try
-        {
-            var response = await _httpClient.DeleteAsync(url);
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Onboarding request successfully cancelled.");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Failed to cancel onboarding request. Error: {e.Message}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"An error occurred while cancelling the onboarding request: {ex.Message}");
-        }
+        await DeleteAsync($"onboard/{onboardingId}", nameof(CancelAnOnboardingRequest));
     }
 
     #endregion
@@ -124,26 +91,7 @@ public class FlipPayWebClient
     /// <param name="linkPostRequest"></param>
     public async Task RequestAnAccountLink(LinkPostRequest linkPostRequest)
     {
-        var url = $"{_baseUrl}/link";
-        var jsonPayload = JsonSerializer.Serialize(linkPostRequest);
-
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Account link request sent");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error requesting account link: {e.Message}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Unexpected error: {ex.Message}");
-        }
+        _ = await PostAsync<object>($"link", linkPostRequest, nameof(RequestAnAccountLink));
     }
 
     /// <summary>
@@ -156,27 +104,10 @@ public class FlipPayWebClient
     /// <returns>LinkGetResponse</returns>
     public async Task<LinkGetResponse?> RetrieveTheStatusOfAnAccountLink(string merchantId)
     {
-        var url = $"{_baseUrl}/link/{merchantId}";
-
-        _logger.LogInformation($"Retrieving link status for merchant {merchantId}...");
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<LinkGetResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching link status: {e.Message}");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Unexpected error: {ex.Message}");
-            return null;
-        }
+        return await GetAsync<LinkGetResponse>(
+            $"link/{merchantId}",
+            nameof(RetrieveTheStatusOfAnAccountLink)
+        );
     }
 
     /// <summary>
@@ -185,22 +116,7 @@ public class FlipPayWebClient
     /// <param name="merchantId"></param>
     public async Task RemoveAnAccountLink(string merchantId)
     {
-        var url = $"{_baseUrl}/link/{merchantId}";
-
-        try
-        {
-            var response = await _httpClient.DeleteAsync(url);
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Link successfully removed.");
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError($"Failed to remove link. Error: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"An error occurred while removing the link: {ex.Message}");
-        }
+        await DeleteAsync($"link/{merchantId}", nameof(RemoveAnAccountLink));
     }
 
     #endregion
@@ -220,25 +136,11 @@ public class FlipPayWebClient
         PayLaterPostRequest payLaterPostRequest
     )
     {
-        var url = $"{_baseUrl}/paylater";
-
-        var jsonPayload = JsonSerializer.Serialize(payLaterPostRequest);
-
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<PayLaterPostResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error requesting payment request: {e.Message}");
-            return null;
-        }
+        return await PostAsync<PayLaterPostResponse>(
+            $"paylater",
+            payLaterPostRequest,
+            nameof(CreateAPayLaterEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -252,23 +154,11 @@ public class FlipPayWebClient
         PayLaterPatchRequest payLaterPatchRequest
     )
     {
-        var url = $"{_baseUrl}/paylater/{prId}";
-
-        var jsonPayload = JsonSerializer.Serialize(payLaterPatchRequest);
-
-        try
-        {
-            var response = await _httpClient.PatchAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Pay Later payment successfully updated.");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error updating payment request: {e.Message}");
-        }
+        await PatchAsync(
+            $"paylater/{prId}",
+            payLaterPatchRequest,
+            nameof(UpdateAPayLaterEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -281,20 +171,10 @@ public class FlipPayWebClient
     /// <returns>PayLaterGetResponse</returns>
     public async Task<PayLaterGetResponse?> RetrieveAPayLaterEnabledRequest(string prId)
     {
-        var url = $"{_baseUrl}/paylater/{prId}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<PayLaterGetResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching payment request: {e.Message}");
-            return null;
-        }
+        return await GetAsync<PayLaterGetResponse>(
+            $"paylater/{prId}",
+            nameof(RetrieveAPayLaterEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -304,18 +184,7 @@ public class FlipPayWebClient
     /// <param name="prId"></param>
     public async Task CancelAPayLaterEnabledRequest(string prId)
     {
-        var url = $"{_baseUrl}/paylater/{prId}";
-
-        try
-        {
-            var response = await _httpClient.DeleteAsync(url);
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Pay Later payment successfully cancelled.");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error cancelling payment request: {e.Message}");
-        }
+        await DeleteAsync($"paylater/{prId}", nameof(CancelAPayLaterEnabledRequest));
     }
 
     #endregion
@@ -331,25 +200,11 @@ public class FlipPayWebClient
         PayNowPostRequest payNowPostRequest
     )
     {
-        var url = $"{_baseUrl}/paynow";
-
-        var jsonPayload = JsonSerializer.Serialize(payNowPostRequest);
-
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<PayNowPostResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error requesting payment request: {e.Message}");
-            return null;
-        }
+        return await PostAsync<PayNowPostResponse>(
+            $"paynow",
+            payNowPostRequest,
+            nameof(CreateAPayNowEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -359,20 +214,10 @@ public class FlipPayWebClient
     /// <returns>PayNowGetResponse</returns>
     public async Task<PayNowGetResponse?> RetrieveAPayNowEnabledRequest(string prId)
     {
-        var url = $"{_baseUrl}/paynow/{prId}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<PayNowGetResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching payment request: {e.Message}");
-            return null;
-        }
+        return await GetAsync<PayNowGetResponse>(
+            $"paynow/{prId}",
+            nameof(RetrieveAPayNowEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -381,18 +226,7 @@ public class FlipPayWebClient
     /// <param name="prId"></param>
     public async Task DeleteAPayNowEnabledRequest(string prId)
     {
-        var url = $"{_baseUrl}/paynow/{prId}";
-
-        try
-        {
-            var response = await _httpClient.DeleteAsync(url);
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Pay Now payment request successfully cancelled.");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error cancelling payment request: {e.Message}");
-        }
+        await DeleteAsync($"paynow/{prId}", nameof(DeleteAPayNowEnabledRequest));
     }
 
     #endregion
@@ -408,25 +242,11 @@ public class FlipPayWebClient
         DirectPostRequest directPostRequest
     )
     {
-        var url = $"{_baseUrl}/direct";
-
-        var jsonPayload = JsonSerializer.Serialize(directPostRequest);
-
-        try
-        {
-            var response = await _httpClient.PostAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<DirectPostResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error requesting payment request: {e.Message}");
-            return null;
-        }
+        return await PostAsync<DirectPostResponse>(
+            $"direct",
+            directPostRequest,
+            nameof(CreateADirectFundingRequest)
+        );
     }
 
     /// <summary>
@@ -436,23 +256,7 @@ public class FlipPayWebClient
     /// <param name="productFields">Product fields to update on the PR</param>
     public async Task UpdateADirectFundingRequest(string prId, List<ProductField> productFields)
     {
-        var url = $"{_baseUrl}/direct/{prId}";
-
-        var jsonPayload = JsonSerializer.Serialize(productFields);
-
-        try
-        {
-            var response = await _httpClient.PatchAsync(
-                url,
-                new StringContent(jsonPayload, Encoding.UTF8, "application/json")
-            );
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Direct funding request successfully updated.");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error updating payment request: {e.Message}");
-        }
+        await PatchAsync($"direct/{prId}", productFields, nameof(UpdateADirectFundingRequest));
     }
 
     /// <summary>
@@ -462,20 +266,10 @@ public class FlipPayWebClient
     /// <returns>DirectGetResponse</returns>
     public async Task<DirectGetResponse?> RetrieveADirectFundingRequest(string prId)
     {
-        var url = $"{_baseUrl}/direct/{prId}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<DirectGetResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching payment request: {e.Message}");
-            return null;
-        }
+        return await GetAsync<DirectGetResponse>(
+            $"direct/{prId}",
+            nameof(RetrieveADirectFundingRequest)
+        );
     }
 
     /// <summary>
@@ -484,18 +278,7 @@ public class FlipPayWebClient
     /// <param name="prId">The unique ID of the payment request to be cancelled.</param>
     public async Task CancelADirectFundingRequest(string prId)
     {
-        var url = $"{_baseUrl}/direct/{prId}";
-
-        try
-        {
-            var response = await _httpClient.DeleteAsync(url);
-            response.EnsureSuccessStatusCode();
-            _logger.LogInformation("Direct funding request successfully cancelled.");
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error cancelling payment request: {e.Message}");
-        }
+        await DeleteAsync($"direct/{prId}", nameof(CancelADirectFundingRequest));
     }
 
     /// <summary>
@@ -508,21 +291,10 @@ public class FlipPayWebClient
         string queryParameters
     )
     {
-        var url = $"{_baseUrl}/direct?{queryParameters}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<DirectGetListResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching payment request: {e.Message}");
-            return null;
-        }
+        return await GetAsync<DirectGetListResponse>(
+            $"direct?{queryParameters}",
+            nameof(RetrieveAListOfDirectFundingRequests)
+        );
     }
 
     #endregion
@@ -536,20 +308,10 @@ public class FlipPayWebClient
     /// <returns>GetBankAccountsResponse</returns>
     public async Task<GetBankAccountsResponse?> RetrieveBankAccounts(string merchantId)
     {
-        var url = $"{_baseUrl}/bankaccounts/{merchantId}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<GetBankAccountsResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching accounts: {e.Message}");
-            return null;
-        }
+        return await GetAsync<GetBankAccountsResponse>(
+            $"bankaccounts/{merchantId}",
+            nameof(RetrieveBankAccounts)
+        );
     }
 
     /// <summary>
@@ -559,23 +321,122 @@ public class FlipPayWebClient
     /// <returns>GetProductsResponse</returns>
     public async Task<GetProductsResponse?> RetrieveProductsOnAMerchantAccount(string merchantId)
     {
-        var url = $"{_baseUrl}/products/{merchantId}";
-
-        try
-        {
-            var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<GetProductsResponse>(content);
-        }
-        catch (HttpRequestException e)
-        {
-            _logger.LogError($"Error fetching products: {e.Message}");
-            return null;
-        }
+        return await GetAsync<GetProductsResponse>(
+            $"products/{merchantId}",
+            nameof(RetrieveProductsOnAMerchantAccount)
+        );
     }
 
     #endregion
+
+    #endregion
+
+    #region Helper Methods
+
+    private const string contentType = "application/json";
+
+    private async Task<T?> GetAsync<T>(string url, string methodName)
+        where T : class
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return JsonSerializer.Deserialize<T>(content);
+        }
+        catch (HttpRequestException e)
+        {
+            HandleError(e, $"Error fetching data in {methodName}: {e.Message}");
+        }
+        catch (JsonException ex)
+        {
+            HandleError(ex, $"Error using JSON in {methodName}: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Unexpected error in {methodName}: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    private async Task<T?> PostAsync<T>(string url, object payload, string methodName)
+        where T : class
+    {
+        try
+        {
+            var jsonPayload = JsonSerializer.Serialize(payload);
+            var response = await _httpClient
+                .PostAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType))
+                .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return JsonSerializer.Deserialize<T>(content);
+        }
+        catch (HttpRequestException e)
+        {
+            HandleError(e, $"Error posting data in {methodName}: {e.Message}");
+        }
+        catch (JsonException ex)
+        {
+            HandleError(ex, $"Error using JSON in {methodName}: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Unexpected error in {methodName}: {ex.Message}");
+        }
+
+        return null;
+    }
+
+    private async Task PatchAsync(string url, object payload, string methodName)
+    {
+        try
+        {
+            var jsonPayload = JsonSerializer.Serialize(payload);
+            var response = await _httpClient
+                .PatchAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType))
+                .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            _logger.LogInformation($"{methodName} successfully executed.");
+        }
+        catch (HttpRequestException e)
+        {
+            HandleError(e, $"Error patching data in {methodName}: {e.Message}");
+        }
+        catch (JsonException ex)
+        {
+            HandleError(ex, $"Error using JSON in {methodName}: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Unexpected error in {methodName}: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteAsync(string url, string methodName)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync(url).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            _logger.LogInformation($"{methodName} successfully executed.");
+        }
+        catch (HttpRequestException e)
+        {
+            HandleError(e, $"Error deleting data in {methodName}: {e.Message}");
+        }
+        catch (Exception ex)
+        {
+            HandleError(ex, $"Unexpected error in {methodName}: {ex.Message}");
+        }
+    }
+
+    private void HandleError(Exception ex, string message)
+    {
+        _logger.LogError(message);
+    }
 
     #endregion
 }
