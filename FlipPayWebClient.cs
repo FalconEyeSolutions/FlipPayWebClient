@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text;
-using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using FlipPayApiLibrary.Models.Onboard;
 using FlipPayApiLibrary.Models.General;
@@ -9,24 +8,36 @@ using FlipPayApiLibrary.Models.PayLater;
 using FlipPayApiLibrary.Models.PayNow;
 using FlipPayApiLibrary.Models.Direct;
 using FlipPayApiLibrary.Models.Common;
+using System.Net.Http.Headers;
 
 namespace FlipPayApiLibrary;
 
 // API Documentation: https://api-docs.flippay.com.au/v2.html
-public class FlipPayWebClient
+public class FlipPayWebClient : IFlipPayWebClient
 {
-    private const string productionUrl = "https://app.flippay.com.au/api/v2";
-    private const string demoUrl = "https://demo.flippay.com.au/api/v2";
-    private readonly HttpClient _httpClient = new();
-    private readonly string _baseUrl;
-    private readonly ILogger _logger;
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<FlipPayWebClient> _logger;
 
-    public FlipPayWebClient(string token, bool isDemo, ILogger logger)
+    #region Constructors
+
+    public FlipPayWebClient(HttpClient httpClient, ILogger<FlipPayWebClient> logger)
     {
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        _baseUrl = isDemo ? demoUrl : productionUrl;
+        _httpClient = httpClient;
         _logger = logger;
     }
+
+    public FlipPayWebClient(FlipPayConfig config, ILogger<FlipPayWebClient> logger)
+    {
+        _httpClient = new();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Bearer",
+            config.Token
+        );
+        _httpClient.BaseAddress = new Uri(config.IsDemo ? config.DemoUrl : config.ProductionUrl);
+        _logger = logger;
+    }
+
+    #endregion
 
     #region Introducers
 
@@ -37,9 +48,15 @@ public class FlipPayWebClient
     /// </summary>
     /// <param name="onboardPostRequest"></param>
     /// <returns>OnboardPostResponse</returns>
-    public async Task<OnboardPostResponse?> CreateAnOnboardingRequest(OnboardPostRequest onboardPostRequest)
+    public async Task<OnboardPostResponse?> CreateAnOnboardingRequest(
+        OnboardPostRequest onboardPostRequest
+    )
     {
-        return await PostAsync<OnboardPostResponse>($"{_baseUrl}/onboard", onboardPostRequest, nameof(CreateAnOnboardingRequest));
+        return await PostAsync<OnboardPostResponse>(
+            $"onboard",
+            onboardPostRequest,
+            nameof(CreateAnOnboardingRequest)
+        );
     }
 
     /// <summary>
@@ -48,7 +65,10 @@ public class FlipPayWebClient
     /// <param name="onboardingId"></param>
     public async Task<OnboardGetResponse?> RetrieveAnOnboardingRequest(string onboardingId)
     {
-        return await GetAsync<OnboardGetResponse>($"{_baseUrl}/onboard/{onboardingId}", nameof(RetrieveAnOnboardingRequest));
+        return await GetAsync<OnboardGetResponse>(
+            $"onboard/{onboardingId}",
+            nameof(RetrieveAnOnboardingRequest)
+        );
     }
 
     /// <summary>
@@ -57,7 +77,7 @@ public class FlipPayWebClient
     /// <param name="onboardingId"></param>
     public async Task CancelAnOnboardingRequest(string onboardingId)
     {
-        await DeleteAsync($"{_baseUrl}/onboard/{onboardingId}", nameof(CancelAnOnboardingRequest));
+        await DeleteAsync($"onboard/{onboardingId}", nameof(CancelAnOnboardingRequest));
     }
 
     #endregion
@@ -71,7 +91,7 @@ public class FlipPayWebClient
     /// <param name="linkPostRequest"></param>
     public async Task RequestAnAccountLink(LinkPostRequest linkPostRequest)
     {
-        _ = await PostAsync<object>($"{_baseUrl}/link", linkPostRequest, nameof(RequestAnAccountLink));
+        _ = await PostAsync<object>($"link", linkPostRequest, nameof(RequestAnAccountLink));
     }
 
     /// <summary>
@@ -84,7 +104,10 @@ public class FlipPayWebClient
     /// <returns>LinkGetResponse</returns>
     public async Task<LinkGetResponse?> RetrieveTheStatusOfAnAccountLink(string merchantId)
     {
-        return await GetAsync<LinkGetResponse>($"{_baseUrl}/link/{merchantId}", nameof(RetrieveTheStatusOfAnAccountLink));
+        return await GetAsync<LinkGetResponse>(
+            $"link/{merchantId}",
+            nameof(RetrieveTheStatusOfAnAccountLink)
+        );
     }
 
     /// <summary>
@@ -93,7 +116,7 @@ public class FlipPayWebClient
     /// <param name="merchantId"></param>
     public async Task RemoveAnAccountLink(string merchantId)
     {
-        await DeleteAsync($"{_baseUrl}/link/{merchantId}", nameof(RemoveAnAccountLink));
+        await DeleteAsync($"link/{merchantId}", nameof(RemoveAnAccountLink));
     }
 
     #endregion
@@ -109,9 +132,15 @@ public class FlipPayWebClient
     /// </summary>
     /// <param name="payLaterPostRequest"></param>
     /// <returns>PayLaterPostResponse</returns>
-    public async Task<PayLaterPostResponse?> CreateAPayLaterEnabledRequest(PayLaterPostRequest payLaterPostRequest)
+    public async Task<PayLaterPostResponse?> CreateAPayLaterEnabledRequest(
+        PayLaterPostRequest payLaterPostRequest
+    )
     {
-        return await PostAsync<PayLaterPostResponse>($"{_baseUrl}/paylater", payLaterPostRequest, nameof(CreateAPayLaterEnabledRequest));
+        return await PostAsync<PayLaterPostResponse>(
+            $"paylater",
+            payLaterPostRequest,
+            nameof(CreateAPayLaterEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -120,9 +149,16 @@ public class FlipPayWebClient
     /// </summary>
     /// <param name="prId"></param>
     /// <param name="payLaterPatchRequest"></param>
-    public async Task UpdateAPayLaterEnabledRequest(string prId, PayLaterPatchRequest payLaterPatchRequest)
+    public async Task UpdateAPayLaterEnabledRequest(
+        string prId,
+        PayLaterPatchRequest payLaterPatchRequest
+    )
     {
-        await PatchAsync($"{_baseUrl}/paylater/{prId}", payLaterPatchRequest, nameof(UpdateAPayLaterEnabledRequest));
+        await PatchAsync(
+            $"paylater/{prId}",
+            payLaterPatchRequest,
+            nameof(UpdateAPayLaterEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -135,7 +171,10 @@ public class FlipPayWebClient
     /// <returns>PayLaterGetResponse</returns>
     public async Task<PayLaterGetResponse?> RetrieveAPayLaterEnabledRequest(string prId)
     {
-        return await GetAsync<PayLaterGetResponse>($"{_baseUrl}/paylater/{prId}", nameof(RetrieveAPayLaterEnabledRequest));
+        return await GetAsync<PayLaterGetResponse>(
+            $"paylater/{prId}",
+            nameof(RetrieveAPayLaterEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -145,7 +184,7 @@ public class FlipPayWebClient
     /// <param name="prId"></param>
     public async Task CancelAPayLaterEnabledRequest(string prId)
     {
-        await DeleteAsync($"{_baseUrl}/paylater/{prId}", nameof(CancelAPayLaterEnabledRequest));
+        await DeleteAsync($"paylater/{prId}", nameof(CancelAPayLaterEnabledRequest));
     }
 
     #endregion
@@ -157,9 +196,15 @@ public class FlipPayWebClient
     /// </summary>
     /// <param name="payNowPostRequest"></param>
     /// <returns>PayNowPostResponse</returns>
-    public async Task<PayNowPostResponse?> CreateAPayNowEnabledRequest(PayNowPostRequest payNowPostRequest)
+    public async Task<PayNowPostResponse?> CreateAPayNowEnabledRequest(
+        PayNowPostRequest payNowPostRequest
+    )
     {
-        return await PostAsync<PayNowPostResponse>($"{_baseUrl}/paynow", payNowPostRequest, nameof(CreateAPayNowEnabledRequest));
+        return await PostAsync<PayNowPostResponse>(
+            $"paynow",
+            payNowPostRequest,
+            nameof(CreateAPayNowEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -169,7 +214,10 @@ public class FlipPayWebClient
     /// <returns>PayNowGetResponse</returns>
     public async Task<PayNowGetResponse?> RetrieveAPayNowEnabledRequest(string prId)
     {
-        return await GetAsync<PayNowGetResponse>($"{_baseUrl}/paynow/{prId}", nameof(RetrieveAPayNowEnabledRequest));
+        return await GetAsync<PayNowGetResponse>(
+            $"paynow/{prId}",
+            nameof(RetrieveAPayNowEnabledRequest)
+        );
     }
 
     /// <summary>
@@ -178,7 +226,7 @@ public class FlipPayWebClient
     /// <param name="prId"></param>
     public async Task DeleteAPayNowEnabledRequest(string prId)
     {
-        await DeleteAsync($"{_baseUrl}/paynow/{prId}", nameof(DeleteAPayNowEnabledRequest));
+        await DeleteAsync($"paynow/{prId}", nameof(DeleteAPayNowEnabledRequest));
     }
 
     #endregion
@@ -190,9 +238,15 @@ public class FlipPayWebClient
     /// </summary>
     /// <param name="directPostRequest"></param>
     /// <returns>DirectPostResponse</returns>
-    public async Task<DirectPostResponse?> CreateADirectFundingRequest(DirectPostRequest directPostRequest)
+    public async Task<DirectPostResponse?> CreateADirectFundingRequest(
+        DirectPostRequest directPostRequest
+    )
     {
-        return await PostAsync<DirectPostResponse>($"{_baseUrl}/direct", directPostRequest, nameof(CreateADirectFundingRequest));
+        return await PostAsync<DirectPostResponse>(
+            $"direct",
+            directPostRequest,
+            nameof(CreateADirectFundingRequest)
+        );
     }
 
     /// <summary>
@@ -202,7 +256,7 @@ public class FlipPayWebClient
     /// <param name="productFields">Product fields to update on the PR</param>
     public async Task UpdateADirectFundingRequest(string prId, List<ProductField> productFields)
     {
-        await PatchAsync($"{_baseUrl}/direct/{prId}", productFields, nameof(UpdateADirectFundingRequest));
+        await PatchAsync($"direct/{prId}", productFields, nameof(UpdateADirectFundingRequest));
     }
 
     /// <summary>
@@ -212,7 +266,10 @@ public class FlipPayWebClient
     /// <returns>DirectGetResponse</returns>
     public async Task<DirectGetResponse?> RetrieveADirectFundingRequest(string prId)
     {
-        return await GetAsync<DirectGetResponse>($"{_baseUrl}/direct/{prId}", nameof(RetrieveADirectFundingRequest));
+        return await GetAsync<DirectGetResponse>(
+            $"direct/{prId}",
+            nameof(RetrieveADirectFundingRequest)
+        );
     }
 
     /// <summary>
@@ -221,7 +278,7 @@ public class FlipPayWebClient
     /// <param name="prId">The unique ID of the payment request to be cancelled.</param>
     public async Task CancelADirectFundingRequest(string prId)
     {
-        await DeleteAsync($"{_baseUrl}/direct/{prId}", nameof(CancelADirectFundingRequest));
+        await DeleteAsync($"direct/{prId}", nameof(CancelADirectFundingRequest));
     }
 
     /// <summary>
@@ -230,9 +287,14 @@ public class FlipPayWebClient
     /// - When authenticating as an integrated partner, merchantId is mandatory(the service will only provide records for a single merchant)
     /// </summary>
     /// <param name="queryParameters">Query parameters to filter the list of direct funding requests</param>
-    public async Task<DirectGetListResponse?> RetrieveAListOfDirectFundingRequests(string queryParameters)
+    public async Task<DirectGetListResponse?> RetrieveAListOfDirectFundingRequests(
+        string queryParameters
+    )
     {
-        return await GetAsync<DirectGetListResponse>($"{_baseUrl}/direct?{queryParameters}", nameof(RetrieveAListOfDirectFundingRequests));
+        return await GetAsync<DirectGetListResponse>(
+            $"direct?{queryParameters}",
+            nameof(RetrieveAListOfDirectFundingRequests)
+        );
     }
 
     #endregion
@@ -246,7 +308,10 @@ public class FlipPayWebClient
     /// <returns>GetBankAccountsResponse</returns>
     public async Task<GetBankAccountsResponse?> RetrieveBankAccounts(string merchantId)
     {
-        return await GetAsync<GetBankAccountsResponse>($"{_baseUrl}/bankaccounts/{merchantId}", nameof(RetrieveBankAccounts));
+        return await GetAsync<GetBankAccountsResponse>(
+            $"bankaccounts/{merchantId}",
+            nameof(RetrieveBankAccounts)
+        );
     }
 
     /// <summary>
@@ -256,7 +321,10 @@ public class FlipPayWebClient
     /// <returns>GetProductsResponse</returns>
     public async Task<GetProductsResponse?> RetrieveProductsOnAMerchantAccount(string merchantId)
     {
-        return await GetAsync<GetProductsResponse>($"{_baseUrl}/products/{merchantId}", nameof(RetrieveProductsOnAMerchantAccount));
+        return await GetAsync<GetProductsResponse>(
+            $"products/{merchantId}",
+            nameof(RetrieveProductsOnAMerchantAccount)
+        );
     }
 
     #endregion
@@ -267,7 +335,8 @@ public class FlipPayWebClient
 
     private const string contentType = "application/json";
 
-    private async Task<T?> GetAsync<T>(string url, string methodName) where T : class
+    private async Task<T?> GetAsync<T>(string url, string methodName)
+        where T : class
     {
         try
         {
@@ -292,12 +361,15 @@ public class FlipPayWebClient
         return null;
     }
 
-    private async Task<T?> PostAsync<T>(string url, object payload, string methodName) where T : class
+    private async Task<T?> PostAsync<T>(string url, object payload, string methodName)
+        where T : class
     {
         try
         {
             var jsonPayload = JsonSerializer.Serialize(payload);
-            var response = await _httpClient.PostAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType)).ConfigureAwait(false);           
+            var response = await _httpClient
+                .PostAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType))
+                .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return JsonSerializer.Deserialize<T>(content);
@@ -323,7 +395,9 @@ public class FlipPayWebClient
         try
         {
             var jsonPayload = JsonSerializer.Serialize(payload);
-            var response = await _httpClient.PatchAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType)).ConfigureAwait(false);
+            var response = await _httpClient
+                .PatchAsync(url, new StringContent(jsonPayload, Encoding.UTF8, contentType))
+                .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             _logger.LogInformation($"{methodName} successfully executed.");
         }
