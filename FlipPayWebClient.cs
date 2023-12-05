@@ -282,16 +282,17 @@ public class FlipPayWebClient : IFlipPayWebClient
     }
 
     /// <summary>
-    /// Retrieve a filtered list of direct funding requests
-    /// - When authenticating as a merchant, no single parameter is mandatory, all are optional
-    /// - When authenticating as an integrated partner, merchantId is mandatory(the service will only provide records for a single merchant)
+    /// Retrieve a filtered list of direct funding requests.
+    /// - When authenticating as a merchant, no single parameter is mandatory; all are optional.
+    /// - When authenticating as an integrated partner, merchantId is mandatory (the service will only provide records for a single merchant).
     /// </summary>
-    /// <param name="queryParameters">Query parameters to filter the list of direct funding requests</param>
-    public async Task<DirectGetListResponse?> RetrieveAListOfDirectFundingRequests(
+    /// <param name="queryParameters">Query parameters to filter the list of direct funding requests.</param>
+    /// <returns>List of DirectGetListResponseItem</returns>
+    public async Task<List<DirectGetListResponseItem>?> RetrieveAListOfDirectFundingRequests(
         string queryParameters
     )
     {
-        return await GetAsync<DirectGetListResponse>(
+        return await GetAsync<List<DirectGetListResponseItem>>(
             $"direct?{queryParameters}",
             nameof(RetrieveAListOfDirectFundingRequests)
         );

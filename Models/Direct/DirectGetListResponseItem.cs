@@ -2,7 +2,7 @@
 
 namespace FlipPayApiLibrary.Models.Direct;
 
-public record DirectGetListResponse(
+public record DirectGetListResponseItem(
     [property: JsonPropertyName("status")] string? Status,
     [property: JsonPropertyName("prId")] string? PrId,
     [property: JsonPropertyName("productId")] string? ProductId,

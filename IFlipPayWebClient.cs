@@ -21,7 +21,7 @@ namespace FlipPayApiLibrary
         Task RemoveAnAccountLink(string merchantId);
         Task RequestAnAccountLink(LinkPostRequest linkPostRequest);
         Task<DirectGetResponse?> RetrieveADirectFundingRequest(string prId);
-        Task<DirectGetListResponse?> RetrieveAListOfDirectFundingRequests(string queryParameters);
+        Task<List<DirectGetListResponseItem>?> RetrieveAListOfDirectFundingRequests(string queryParameters);
         Task<OnboardGetResponse?> RetrieveAnOnboardingRequest(string onboardingId);
         Task<PayLaterGetResponse?> RetrieveAPayLaterEnabledRequest(string prId);
         Task<PayNowGetResponse?> RetrieveAPayNowEnabledRequest(string prId);
