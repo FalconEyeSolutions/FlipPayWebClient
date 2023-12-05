@@ -17,9 +17,9 @@
     <PackageTags>library; flippay; falcon; fes; api</PackageTags>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>1.1.2</Version>
+    <Version>1.1.3</Version>
     <PackageReleaseNotes>See this commit for changes
-https://github.com/FalconEyeSolutions/FlipPayWebClient/commit/24829b924c5ee34f793e78d7f49566b42daf5c69</PackageReleaseNotes>
+https://github.com/FalconEyeSolutions/FlipPayWebClient/commit/d039c427fb7b951cce3c653c34f53ce65de385d9</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
