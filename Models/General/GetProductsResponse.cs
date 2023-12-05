@@ -2,18 +2,13 @@
 
 namespace FlipPayApiLibrary.Models.General;
 
-public interface IProductInfo{ }
-
 public record GetProductsResponse(
-    [property: JsonPropertyName("products")] List<IProductInfo>? Products
+    [property: JsonPropertyName("products")] List<ProductInfo>? Products
 );
 
-public record ProductDetails(
-    [property: JsonPropertyName("productId")] string ProductId,
-    [property: JsonPropertyName("minAmount")] decimal MinAmount,
-    [property: JsonPropertyName("maxAmount")] decimal MaxAmount
-) : IProductInfo;
-
-public record MerchantFacilityInfo(
-    [property: JsonPropertyName("merchantFacility")] bool MerchantFacility
-) : IProductInfo;
+public record ProductInfo(
+    [property: JsonPropertyName("productId")] string? ProductId,
+    [property: JsonPropertyName("minAmount")] decimal? MinAmount,
+    [property: JsonPropertyName("maxAmount")] decimal? MaxAmount,
+    [property: JsonPropertyName("merchantFacility")] bool? MerchantFacility
+);
