@@ -1,14 +1,14 @@
-﻿using System.Text.Json;
-using System.Text;
-using Microsoft.Extensions.Logging;
-using FlipPayApiLibrary.Models.Onboard;
+﻿using FlipPayApiLibrary.Models.Common;
+using FlipPayApiLibrary.Models.Direct;
 using FlipPayApiLibrary.Models.General;
 using FlipPayApiLibrary.Models.Link;
+using FlipPayApiLibrary.Models.Onboard;
 using FlipPayApiLibrary.Models.PayLater;
 using FlipPayApiLibrary.Models.PayNow;
-using FlipPayApiLibrary.Models.Direct;
-using FlipPayApiLibrary.Models.Common;
+using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace FlipPayApiLibrary;
 
@@ -37,7 +37,7 @@ public class FlipPayWebClient : IFlipPayWebClient
         _logger = logger;
     }
 
-    #endregion
+    #endregion Constructors
 
     #region Introducers
 
@@ -80,7 +80,7 @@ public class FlipPayWebClient : IFlipPayWebClient
         await DeleteAsync($"onboard/{onboardingId}", nameof(CancelAnOnboardingRequest));
     }
 
-    #endregion
+    #endregion Onboard
 
     #region Link
 
@@ -119,9 +119,9 @@ public class FlipPayWebClient : IFlipPayWebClient
         await DeleteAsync($"link/{merchantId}", nameof(RemoveAnAccountLink));
     }
 
-    #endregion
+    #endregion Link
 
-    #endregion
+    #endregion Introducers
 
     #region Merchant
 
@@ -187,7 +187,7 @@ public class FlipPayWebClient : IFlipPayWebClient
         await DeleteAsync($"paylater/{prId}", nameof(CancelAPayLaterEnabledRequest));
     }
 
-    #endregion
+    #endregion Pay Later
 
     #region Pay Now
 
@@ -229,7 +229,7 @@ public class FlipPayWebClient : IFlipPayWebClient
         await DeleteAsync($"paynow/{prId}", nameof(DeleteAPayNowEnabledRequest));
     }
 
-    #endregion
+    #endregion Pay Now
 
     #region Direct
 
@@ -298,7 +298,7 @@ public class FlipPayWebClient : IFlipPayWebClient
         );
     }
 
-    #endregion
+    #endregion Direct
 
     #region General
 
@@ -328,9 +328,9 @@ public class FlipPayWebClient : IFlipPayWebClient
         );
     }
 
-    #endregion
+    #endregion General
 
-    #endregion
+    #endregion Merchant
 
     #region Helper Methods
 
@@ -439,5 +439,5 @@ public class FlipPayWebClient : IFlipPayWebClient
         _logger.LogError(message);
     }
 
-    #endregion
+    #endregion Helper Methods
 }

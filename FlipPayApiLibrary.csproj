@@ -1,45 +1,47 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Authors>FalconEyeSolutions, AbdulKadir</Authors>
-    <Description>The FlipPayWebClient is a comprehensive .NET library designed for seamless integration with the FlipPay API. This package allows .NET developers to easily interact with the FlipPay platform, streamlining the implementation of various financial services offered by FlipPay. The library encapsulates a wide range of functionalities including merchant onboarding, account linking, and handling different payment options like 'Pay Later' and 'Pay Now'.</Description>
-    <Copyright>Copyright © Abdul-Kadir Coskun 2023</Copyright>
-    <PackageId>FlipPayWebClient</PackageId>
-    <Title>FlipPayWebClient</Title>
-    <PackageIcon>Icons/logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/FalconEyeSolutions/FlipPayWebClient</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>library; flippay; falcon; fes; api</PackageTags>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>1.1.4</Version>
-    <PackageReleaseNotes>See this commit for changes
-https://github.com/FalconEyeSolutions/FlipPayWebClient/commit/46f73a81796d2d15e97199d516c9fe16d2a2befd</PackageReleaseNotes>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>FalconEyeSolutions, AbdulKadir</Authors>
+		<Description>The FlipPayWebClient is a comprehensive .NET library designed for seamless integration with the FlipPay API. This package allows .NET developers to easily interact with the FlipPay platform, streamlining the implementation of various financial services offered by FlipPay. The library encapsulates a wide range of functionalities including merchant onboarding, account linking, and handling different payment options like 'Pay Later' and 'Pay Now'.</Description>
+		<Copyright>Copyright © Abdul-Kadir Coskun 2023</Copyright>
+		<PackageId>FlipPayWebClient</PackageId>
+		<Title>FlipPayWebClient</Title>
+		<PackageIcon>Icons/logo.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryUrl>https://github.com/FalconEyeSolutions/FlipPayWebClient</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>library; flippay; falcon; fes; api</PackageTags>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+		<Version>1.1.4</Version>
+		<PackageReleaseNotes>
+			See this commit for changes
+			https://github.com/FalconEyeSolutions/FlipPayWebClient/commit/46f73a81796d2d15e97199d516c9fe16d2a2befd
+		</PackageReleaseNotes>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="Icons\logo.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Update="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="Icons\logo.png">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Update="LICENSE.txt">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Update="README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>
